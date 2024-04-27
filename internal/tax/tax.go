@@ -24,6 +24,13 @@ func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {
 	personalAllowance := 60000.0
 	netIncome := input.TotalIncome - personalAllowance
 
+	for _, a := range input.Allowances {
+		if a.AllowanceType == "donation" && a.Amount > 100000 {
+			a.Amount = 100000
+		}
+		netIncome -= a.Amount
+	}
+
 	var totalTax float64
 	taxLevels := []struct {
 		Level   string
