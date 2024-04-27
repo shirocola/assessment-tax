@@ -40,3 +40,18 @@ func TestCalculateTaxWithWHT(t *testing.T) {
 		t.Errorf("Expected tax after WHT to be %.1f, got %.1f", expectedTax, result.TotalTax)
 	}
 }
+
+func TestCalculateTaxWithDonations(t *testing.T) {
+	input := TaxCalculationInput{
+		TotalIncome: 500000,
+		WHT:         0,
+		Allowances: []Allowance{
+			{AllowanceType: "donation", Amount: 200000},
+		},
+	}
+	expectedTax := 19000.0 // Adjusted tax considering donation deductions
+	result, _ := CalculateTax(input)
+	if result.TotalTax != expectedTax {
+		t.Errorf("Expected tax with donations to be %.1f, got %.1f", expectedTax, result.TotalTax)
+	}
+}
