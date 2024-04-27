@@ -1,3 +1,4 @@
+// In `tax.go`
 package tax
 
 import (
@@ -43,7 +44,8 @@ func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {
 		}
 	}
 
-	totalTax = math.Max(0, totalTax)
+	// Subtract WHT from the calculated total tax
+	totalTax = math.Max(0, totalTax-input.WHT)
 	return TaxCalculationOutput{TotalTax: totalTax}, nil
 }
 
