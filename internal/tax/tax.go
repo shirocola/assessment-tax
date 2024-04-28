@@ -43,23 +43,25 @@ func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {
 	personalAllowance := 60000.0
 	netIncome := input.TotalIncome - personalAllowance
 
-	for _, a := range input.Allowances {
-		if a.AllowanceType == "personal" && a.Amount > 0 {
-			netIncome += personalAllowance
-			netIncome -= a.Amount
-		} else if a.AllowanceType == "donation" {
-			donationDeduction := a.Amount
-			if donationDeduction > 100000 {
-				donationDeduction = 100000
+	for _, allowance := range input.Allowances {
+		switch allowance.AllowanceType {
+		case "personal":
+			if allowance.Amount > 0 {
+				netIncome += personalAllowance
+				netIncome -= allowance.Amount
 			}
-			netIncome -= donationDeduction
-		} else {
-			netIncome -= a.Amount
+		case "donation":
+			if allowance.Amount > 100000 {
+				allowance.Amount = 100000
+			}
+			netIncome -= allowance.Amount
+		case "k-receipt":
+			if allowance.Amount > 50000 {
+				allowance.Amount = 50000
+			}
+			netIncome -= allowance.Amount
 		}
 	}
-
-	var totalTax float64
-	details := []TaxDetail{}
 
 	taxLevels := []struct {
 		Level   string
@@ -67,16 +69,20 @@ func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {
 		Max     float64
 		TaxRate float64
 	}{
-		{"0-150,000", 0, 150000, 0},
+		{"0-150,000", 0, 150000, 0.00},
 		{"150,001-500,000", 150001, 500000, 0.10},
 		{"500,001-1,000,000", 500001, 1000000, 0.15},
 		{"1,000,001-2,000,000", 1000001, 2000000, 0.20},
 		{"2,000,001 and up", 2000001, math.MaxFloat64, 0.35},
 	}
 
+	var details []TaxDetail
+	totalTax := 0.0
+
+	// Calculate tax for each level
 	for _, level := range taxLevels {
 		if netIncome > level.Min {
-			taxableIncome := min(netIncome, level.Max) - level.Min
+			taxableIncome := math.Min(netIncome, level.Max) - level.Min
 			tax := taxableIncome * level.TaxRate
 			tax = math.Round(tax)
 			totalTax += tax
@@ -87,7 +93,7 @@ func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {
 	}
 
 	totalTax -= input.WHT
-	totalTax = math.Round(totalTax)
+	// totalTax = math.Round(totalTax)
 	if totalTax < 0 {
 		totalTax = 0
 	}
