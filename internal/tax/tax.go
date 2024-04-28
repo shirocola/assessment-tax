@@ -101,3 +101,9 @@ func min(x, y float64) float64 {
 	}
 	return y
 }
+
+func GetPersonalDeduction() float64 {
+	personalDeductionLock.Lock()
+	defer personalDeductionLock.Unlock()
+	return personalDeduction
+}
