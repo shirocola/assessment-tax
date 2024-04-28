@@ -92,3 +92,22 @@ func TestCalculateTaxWithDonations(t *testing.T) {
 		t.Errorf("Expected tax with donations to be %.1f, got %.1f", expectedTax, result.TotalTax)
 	}
 }
+
+func TestSetPersonalDeduction(t *testing.T) {
+	initialDeduction := GetPersonalDeduction()
+	newDeduction := 70000.0
+
+	// Set new personal deduction
+	updatedDeduction, err := SetPersonalDeduction(newDeduction)
+	if err != nil {
+		t.Errorf("Error setting personal deduction: %v", err)
+	}
+
+	// Check if the deduction was updated correctly
+	if updatedDeduction != newDeduction {
+		t.Errorf("Expected personal deduction to be %.2f, got %.2f", newDeduction, updatedDeduction)
+	}
+
+	// Reset to initial value for other tests
+	SetPersonalDeduction(initialDeduction)
+}

@@ -2,17 +2,20 @@ package main
 
 import (
 	"log"
-	"net/http" // Standard library's HTTP package
+	"net/http"
 
-	myhttp "github.com/shirocola/assessment-tax/pkg/http" // Your custom HTTP package
+	"github.com/gorilla/mux"
+	myhttp "github.com/shirocola/assessment-tax/pkg/http"
 )
 
 func main() {
-	http.HandleFunc("/tax/calculations", myhttp.TaxCalculationHandler) // Use the alias here
-	port := "8080"                                                     // Example, typically you'd get this from environment variables
+	router := mux.NewRouter()
 
+	myhttp.RegisterRoutes(router)
+
+	port := "8080"
 	log.Printf("Starting server on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
