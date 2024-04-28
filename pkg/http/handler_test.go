@@ -106,3 +106,36 @@ func TestUploadTaxCalculationCSVHandler_InvalidData(t *testing.T) {
 		t.Errorf("handler returned wrong status code for invalid data: got %v want %v", status, http.StatusBadRequest)
 	}
 }
+
+func TestSetKReceiptDeductionHandler(t *testing.T) {
+	r := mux.NewRouter()
+	r.HandleFunc("/admin/deductions/k-receipt", SetKReceiptDeductionHandler).Methods("POST")
+
+	body := strings.NewReader(`{"amount": 70000}`)
+	req, err := http.NewRequest("POST", "/admin/deductions/k-receipt", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Using a struct to match expected JSON structure
+	var resp struct {
+		KReceipt float64 `json:"kReceipt"`
+	}
+	err = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	expectedKReceipt := 70000.0
+	if resp.KReceipt != expectedKReceipt {
+		t.Errorf("Expected kReceipt to be %.2f, got %.2f", expectedKReceipt, resp.KReceipt)
+	}
+}
