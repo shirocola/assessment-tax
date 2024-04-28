@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -14,6 +15,28 @@ import (
 type taxResponse struct {
 	TotalIncome float64 `json:"totalIncome"`
 	Tax         float64 `json:"tax"`
+}
+
+func BasicAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		if !ok {
+			http.Error(w, "Authorization failed", http.StatusUnauthorized)
+			return
+		}
+
+		envUsername := os.Getenv("ADMIN_USERNAME")
+		envPassword := os.Getenv("ADMIN_PASSWORD")
+
+		// Check credentials
+		if username != envUsername || password != envPassword {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
 }
 
 func TaxCalculationHandler(w http.ResponseWriter, r *http.Request) {
