@@ -2,6 +2,7 @@ package tax
 
 import (
 	"math"
+	"sync"
 )
 
 type TaxCalculationInput struct {
@@ -23,6 +24,19 @@ type TaxDetail struct {
 type TaxCalculationOutput struct {
 	TotalTax float64     `json:"tax"`
 	Details  []TaxDetail `json:"taxLevel"`
+}
+
+var (
+	personalDeductionLock sync.Mutex
+	personalDeduction     float64 = 60000.0
+)
+
+func SetPersonalDeduction(amount float64) (float64, error) {
+	personalDeductionLock.Lock()
+	defer personalDeductionLock.Unlock()
+
+	personalDeduction = amount
+	return personalDeduction, nil
 }
 
 func CalculateTax(input TaxCalculationInput) (TaxCalculationOutput, error) {

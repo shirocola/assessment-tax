@@ -15,3 +15,5 @@ go 1.21.9
 // 	golang.org/x/sys v0.19.0 // indirect
 // 	golang.org/x/text v0.14.0 // indirect
 // )
+
+require github.com/gorilla/mux v1.8.1
