@@ -55,7 +55,7 @@ func TestCalculateTaxWithDetailedLevelsAndDonations(t *testing.T) {
 			},
 		}
 		// Expected results based on the given inputs
-		expectedTotalTax := 19000.0 // Expected total tax after considering allowances and tax rates.
+		expectedTotalTax := 19000.0
 		expectedDetails := []TaxDetail{
 			{Level: "0-150,000", Tax: 0},
 			{Level: "150,001-500,000", Tax: 19000},
@@ -97,17 +97,53 @@ func TestSetPersonalDeduction(t *testing.T) {
 	initialDeduction := GetPersonalDeduction()
 	newDeduction := 70000.0
 
-	// Set new personal deduction
 	updatedDeduction, err := SetPersonalDeduction(newDeduction)
 	if err != nil {
 		t.Errorf("Error setting personal deduction: %v", err)
 	}
 
-	// Check if the deduction was updated correctly
 	if updatedDeduction != newDeduction {
 		t.Errorf("Expected personal deduction to be %.2f, got %.2f", newDeduction, updatedDeduction)
 	}
 
-	// Reset to initial value for other tests
 	SetPersonalDeduction(initialDeduction)
+}
+
+func TestCalculateTaxWithDetailedLevelsAndAllowances(t *testing.T) {
+	input := TaxCalculationInput{
+		TotalIncome: 500000.0,
+		WHT:         0.0,
+		Allowances: []Allowance{
+			{AllowanceType: "k-receipt", Amount: 200000.0},
+			{AllowanceType: "donation", Amount: 100000.0},
+		},
+	}
+
+	expectedTotalTax := 14000.0
+	expectedDetails := []TaxDetail{
+		{Level: "0-150,000", Tax: 0.0},
+		{Level: "150,001-500,000", Tax: 14000.0},
+		{Level: "500,001-1,000,000", Tax: 0.0},
+		{Level: "1,000,001-2,000,000", Tax: 0.0},
+		{Level: "2,000,001 and up", Tax: 0.0},
+	}
+
+	result, err := CalculateTax(input)
+	if err != nil {
+		t.Errorf("CalculateTax returned an error: %v", err)
+	}
+
+	if result.TotalTax != expectedTotalTax {
+		t.Errorf("Expected total tax to be %.1f, got %.1f", expectedTotalTax, result.TotalTax)
+	}
+
+	if len(result.Details) != len(expectedDetails) {
+		t.Fatalf("Expected %d tax details, got %d", len(expectedDetails), len(result.Details))
+	}
+
+	for i, detail := range result.Details {
+		if detail.Tax != expectedDetails[i].Tax {
+			t.Errorf("Tax detail mismatch at level %s: expected %.1f, got %.1f", detail.Level, expectedDetails[i].Tax, detail.Tax)
+		}
+	}
 }
