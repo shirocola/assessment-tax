@@ -1,6 +1,7 @@
 package tax
 
 import (
+	"errors"
 	"math"
 	"sync"
 )
@@ -30,6 +31,27 @@ var (
 	personalDeductionLock sync.Mutex
 	personalDeduction     float64 = 60000.0
 )
+
+var (
+	kReceiptDeduction     float64 = 50000.0
+	kReceiptDeductionLock sync.Mutex
+)
+
+func SetKReceiptDeduction(amount float64) (float64, error) {
+	if amount < 0 || amount > 100000 {
+		return 0, errors.New("k-receipt amount must be between 0 and 100000")
+	}
+	kReceiptDeductionLock.Lock()
+	defer kReceiptDeductionLock.Unlock()
+	kReceiptDeduction = amount
+	return kReceiptDeduction, nil
+}
+
+func GetKReceiptDeduction() float64 {
+	kReceiptDeductionLock.Lock()
+	defer kReceiptDeductionLock.Unlock()
+	return kReceiptDeduction
+}
 
 func SetPersonalDeduction(amount float64) (float64, error) {
 	personalDeductionLock.Lock()
